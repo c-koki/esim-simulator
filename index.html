@@ -82,18 +82,18 @@
     <h1>eSIM料金シミュレーター</h1>
 
     <label for="country">国を選択</label>
-    <select id="country">
-      <option value="">-- 選択 --</option>
+    <select id="country" disabled>
+      <option value="">読み込み中...</option>
     </select>
 
     <label for="days">期間を選択</label>
-    <select id="days">
-      <option value="">-- 選択 --</option>
+    <select id="days" disabled>
+      <option value="">読み込み中...</option>
     </select>
 
     <label for="data">容量を選択</label>
-    <select id="data">
-      <option value="">-- 選択 --</option>
+    <select id="data" disabled>
+      <option value="">読み込み中...</option>
     </select>
 
     <div id="price">金額：-</div>
@@ -114,6 +114,9 @@
         const res = await fetch("https://script.google.com/macros/s/AKfycbxLCicyVjd_6JS9F2nMiy9WZ04GhaE4H1QlNpEYcvP_Mzl2VhJjsTjzZoJL3_MaDCflXg/exec");
         esimData = await res.json();
         generateOptions();
+        countrySelect.disabled = false;
+        daysSelect.disabled = false;
+        dataSelect.disabled = false;
       } catch (e) {
         console.error("データ取得エラー:", e);
         priceDisplay.textContent = "データ取得に失敗しました。";
@@ -131,19 +134,26 @@
         datas.add(row["容量"]);
       });
 
-      [...countries].sort().forEach(c => {
+      countrySelect.innerHTML = '<option value="">-- 選択 --</option>';
+      daysSelect.innerHTML = '<option value="">-- 選択 --</option>';
+      dataSelect.innerHTML = '<option value="">-- 選択 --</option>';
+
+      [...countries].sort((a, b) => a.localeCompare(b, 'ja')).forEach(c => {
         const opt = document.createElement("option");
         opt.value = opt.textContent = c;
         countrySelect.appendChild(opt);
       });
 
-      [...durations].sort().forEach(d => {
+      [...durations].sort((a, b) => parseInt(a) - parseInt(b)).forEach(d => {
         const opt = document.createElement("option");
         opt.value = opt.textContent = d;
         daysSelect.appendChild(opt);
       });
 
-      [...datas].sort().forEach(d => {
+      [...datas].sort((a, b) => {
+        const toNum = val => val.includes("無制限") ? 9999 : parseInt(val);
+        return toNum(a) - toNum(b);
+      }).forEach(d => {
         const opt = document.createElement("option");
         opt.value = opt.textContent = d;
         dataSelect.appendChild(opt);
