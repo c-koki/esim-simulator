@@ -4,85 +4,87 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>eSIM料金シミュレーター</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
-    label, select {
-      display: block;
-      margin: 12px 0 4px;
-    }
-    select {
-      width: 100%;
-      padding: 8px;
-      font-size: 16px;
-    }
-    #price {
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-  </style>
 </head>
 <body>
-  <h1>eSIM料金シミュレーター</h1>
+  <h2>eSIM料金シミュレーター</h2>
 
-  <label for="country">国を選択：</label>
-  <select id="country">
-    <option value="">-- 選択してください --</option>
-    <option value="日本">日本</option>
-    <option value="アメリカ">アメリカ</option>
-  </select>
+  <label>国を選択：
+    <select id="country">
+      <option>日本</option>
+      <option>アメリカ</option>
+      <option>韓国</option>
+    </select>
+  </label>
 
-  <label for="days">期間を選択：</label>
-  <select id="days">
-    <option value="">-- 選択してください --</option>
-    <option value="3日">3日</option>
-    <option value="7日">7日</option>
-    <option value="30日">30日</option>
-  </select>
+  <br><br>
 
-  <label for="data">容量を選択：</label>
-  <select id="data">
-    <option value="">-- 選択してください --</option>
-    <option value="1GB">1GB</option>
-    <option value="3GB">3GB</option>
-    <option value="無制限">無制限</option>
-  </select>
+  <label>期間を選択：
+    <select id="days">
+      <option>3日</option>
+      <option>7日</option>
+      <option>30日</option>
+    </select>
+  </label>
 
-  <div id="price">金額：-</div>
+  <br><br>
+
+  <label>容量を選択：
+    <select id="data">
+      <option>1GB</option>
+      <option>3GB</option>
+      <option>無制限</option>
+    </select>
+  </label>
+
+  <br><br>
+
+  <div id="price">-</div>
 
   <script>
-    const plans = [
-      { 国: "日本", 期間: "3日", 容量: "1GB", 金額: 500 },
-      { 国: "日本", 期間: "7日", 容量: "3GB", 金額: 1200 },
-      { 国: "アメリカ", 期間: "30日", 容量: "無制限", 金額: 3500 }
-    ];
+    window.addEventListener("load", async () => {
+      const country = document.getElementById("country");
+      const days = document.getElementById("days");
+      const data = document.getElementById("data");
+      const priceDisplay = document.getElementById("price");
 
-    const country = document.getElementById("country");
-    const days = document.getElementById("days");
-    const data = document.getElementById("data");
-    const priceDisplay = document.getElementById("price");
+      let esimData = [];
 
-    function updatePrice() {
-      if (!country.value || !days.value || !data.value) {
-        priceDisplay.textContent = "金額：-";
+      try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbxLCicyVjd_6JS9F2nMiy9WZ04GhaE4H1QlNpEYcvP_Mzl2VhJjsTjzZoJL3_MaDCflXg/exec");
+        esimData = await res.json();
+        console.log("取得成功：", esimData);
+      } catch (e) {
+        console.error("データ取得エラー:", e);
+        priceDisplay.textContent = "取得できませんでした";
         return;
       }
 
-      const match = plans.find(
-        p => p.国 === country.value && p.期間 === days.value && p.容量 === data.value
-      );
+      function updatePrice() {
+        if (!country.value || !days.value || !data.value) {
+          priceDisplay.innerHTML = "金額：-";
+          return;
+        }
 
-      priceDisplay.textContent = match ? `金額：¥${match.金額}` : "該当するプランがありません";
-    }
+        const match = esimData.find(row =>
+          row["国"] === country.value &&
+          row["期間"] === days.value &&
+          row["容量"] === data.value
+        );
 
-    country.addEventListener("change", updatePrice);
-    days.addEventListener("change", updatePrice);
-    data.addEventListener("change", updatePrice);
+        if (match) {
+          priceDisplay.innerHTML = `
+            金額：¥${match["金額"]}<br>
+            ${match["URL"] ? `<a href="${match["URL"]}" target="_blank"><button>プラン詳細へ</button></a>` : ""}
+          `;
+        } else {
+          priceDisplay.innerHTML = "該当するプランがありません";
+        }
+      }
+
+      country.addEventListener("change", updatePrice);
+      days.addEventListener("change", updatePrice);
+      data.addEventListener("change", updatePrice);
+    });
   </script>
 </body>
 </html>
