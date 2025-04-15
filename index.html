@@ -1,144 +1,122 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>eSIM料金シミュレーター</title>
   <style>
     body {
-      font-family: 'Zen Kaku Gothic New', sans-serif;
-      background-color: #fff;
-      color: #333;
+      font-family: "Arial", sans-serif;
+      background: #f5f5f5;
       padding: 2rem;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-
-    h2 {
-      font-size: 28px;
-      font-weight: bold;
-      margin-bottom: 1.5rem;
       text-align: center;
     }
-
-    label {
-      font-weight: bold;
-      margin-top: 1rem;
-      display: block;
-      font-size: 16px;
+    h1 {
+      color: #333;
     }
-
     select {
-      width: 100%;
-      padding: 10px;
+      padding: 0.5rem;
+      margin: 0.5rem;
       font-size: 16px;
-      margin-top: 5px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
     }
-
     #price {
-      margin-top: 2rem;
+      margin-top: 1rem;
       font-size: 18px;
       font-weight: bold;
-      text-align: center;
-      color: #000;
-    }
-
-    .button-wrapper {
-      text-align: center;
-      margin-top: 1rem;
-    }
-
-    .plan-button {
-      background-color: #3BC451;
-      color: white;
-      font-size: 16px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .plan-button:hover {
-      background-color: #32a044;
     }
   </style>
 </head>
 <body>
-  <h2>eSIM料金シミュレーター</h2>
+  <h1>eSIM料金シミュレーター</h1>
 
-  <label for="country">国を選択：</label>
-  <select id="country">
-    <option value="">-- 選択してください --</option>
-    <option value="日本">日本</option>
-    <option value="アメリカ">アメリカ</option>
-    <option value="韓国">韓国</option>
-  </select>
+  <div>
+    <label>国を選択：
+      <select id="country"><option value="">-- 選択 --</option></select>
+    </label>
+  </div>
+  <div>
+    <label>期間を選択：
+      <select id="days"><option value="">-- 選択 --</option></select>
+    </label>
+  </div>
+  <div>
+    <label>容量を選択：
+      <select id="data"><option value="">-- 選択 --</option></select>
+    </label>
+  </div>
 
-  <label for="days">期間を選択：</label>
-  <select id="days">
-    <option value="">-- 選択してください --</option>
-    <option value="3日">3日</option>
-    <option value="7日">7日</option>
-    <option value="30日">30日</option>
-  </select>
-
-  <label for="data">容量を選択：</label>
-  <select id="data">
-    <option value="">-- 選択してください --</option>
-    <option value="1GB">1GB</option>
-    <option value="3GB">3GB</option>
-    <option value="無制限">無制限</option>
-  </select>
-
-  <div id="price">-</div>
-  <div class="button-wrapper" id="linkDisplay"></div>
+  <div id="price">金額：-</div>
 
   <script>
-    window.addEventListener("load", async () => {
-      const country = document.getElementById("country");
-      const days = document.getElementById("days");
-      const data = document.getElementById("data");
-      const priceDisplay = document.getElementById("price");
-      const linkDisplay = document.getElementById("linkDisplay");
+    const countrySelect = document.getElementById("country");
+    const daysSelect = document.getElementById("days");
+    const dataSelect = document.getElementById("data");
+    const priceDisplay = document.getElementById("price");
 
-      let esimData = [];
+    let esimData = [];
 
+    async function fetchData() {
       try {
         const res = await fetch("https://script.google.com/macros/s/AKfycbxLCicyVjd_6JS9F2nMiy9WZ04GhaE4H1QlNpEYcvP_Mzl2VhJjsTjzZoJL3_MaDCflXg/exec");
         esimData = await res.json();
+        generateOptions();
       } catch (e) {
-        priceDisplay.textContent = "データ取得エラー";
-        return;
+        console.error("データ取得エラー:", e);
+        priceDisplay.textContent = "データ取得に失敗しました。";
       }
+    }
 
-      function updatePrice() {
-        if (!country.value || !days.value || !data.value) {
-          priceDisplay.textContent = "金額：-";
-          linkDisplay.innerHTML = "";
-          return;
-        }
+    function generateOptions() {
+      const countries = new Set();
+      const durations = new Set();
+      const datas = new Set();
 
-        const match = esimData.find(row =>
-          row["国"].trim() === country.value.trim() &&
-          row["期間"].trim() === days.value.trim() &&
-          row["容量"].trim() === data.value.trim()
-        );
+      esimData.forEach(row => {
+        countries.add(row["国"]);
+        durations.add(row["期間"]);
+        datas.add(row["容量"]);
+      });
 
-        if (match) {
-          priceDisplay.textContent = `金額：¥${match["金額"]}`;
-          linkDisplay.innerHTML = match["URL"] ? `<a href="${match["URL"]}" target="_blank"><button class="plan-button">プラン詳細へ</button></a>` : "";
-        } else {
-          priceDisplay.textContent = "該当するプランがありません";
-          linkDisplay.innerHTML = "";
-        }
+      [...countries].sort().forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = c;
+        countrySelect.appendChild(opt);
+      });
+
+      [...durations].sort().forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = d;
+        daysSelect.appendChild(opt);
+      });
+
+      [...datas].sort().forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = opt.textContent = d;
+        dataSelect.appendChild(opt);
+      });
+    }
+
+    function updatePrice() {
+      const match = esimData.find(row =>
+        row["国"] === countrySelect.value &&
+        row["期間"] === daysSelect.value &&
+        row["容量"] === dataSelect.value
+      );
+
+      if (match) {
+        priceDisplay.innerHTML = `
+          金額：¥${match["金額"]}<br>
+          ${match["URL"] ? `<a href="${match["URL"]}" target="_blank"><button style="margin-top:10px">プラン詳細へ</button></a>` : ""}
+        `;
+      } else {
+        priceDisplay.innerHTML = "該当するプランがありません";
       }
+    }
 
-      country.addEventListener("change", updatePrice);
-      days.addEventListener("change", updatePrice);
-      data.addEventListener("change", updatePrice);
-    });
+    countrySelect.addEventListener("change", updatePrice);
+    daysSelect.addEventListener("change", updatePrice);
+    dataSelect.addEventListener("change", updatePrice);
+
+    window.addEventListener("load", fetchData);
   </script>
 </body>
 </html>
