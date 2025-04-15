@@ -1,44 +1,99 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>eSIM料金シミュレーター</title>
+  <style>
+    body {
+      font-family: 'Zen Kaku Gothic New', sans-serif;
+      background-color: #fff;
+      color: #333;
+      padding: 2rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 1rem;
+      display: block;
+      font-size: 16px;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    #price {
+      margin-top: 2rem;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      color: #000;
+    }
+
+    .button-wrapper {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .plan-button {
+      background-color: #3BC451;
+      color: white;
+      font-size: 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .plan-button:hover {
+      background-color: #32a044;
+    }
+  </style>
 </head>
 <body>
   <h2>eSIM料金シミュレーター</h2>
 
-  <label>国を選択：
-    <select id="country">
-      <option>日本</option>
-      <option>アメリカ</option>
-      <option>韓国</option>
-    </select>
-  </label>
+  <label for="country">国を選択：</label>
+  <select id="country">
+    <option value="">-- 選択してください --</option>
+    <option value="日本">日本</option>
+    <option value="アメリカ">アメリカ</option>
+    <option value="韓国">韓国</option>
+  </select>
 
-  <br><br>
+  <label for="days">期間を選択：</label>
+  <select id="days">
+    <option value="">-- 選択してください --</option>
+    <option value="3日">3日</option>
+    <option value="7日">7日</option>
+    <option value="30日">30日</option>
+  </select>
 
-  <label>期間を選択：
-    <select id="days">
-      <option>3日</option>
-      <option>7日</option>
-      <option>30日</option>
-    </select>
-  </label>
-
-  <br><br>
-
-  <label>容量を選択：
-    <select id="data">
-      <option>1GB</option>
-      <option>3GB</option>
-      <option>無制限</option>
-    </select>
-  </label>
-
-  <br><br>
+  <label for="data">容量を選択：</label>
+  <select id="data">
+    <option value="">-- 選択してください --</option>
+    <option value="1GB">1GB</option>
+    <option value="3GB">3GB</option>
+    <option value="無制限">無制限</option>
+  </select>
 
   <div id="price">-</div>
+  <div class="button-wrapper" id="linkDisplay"></div>
 
   <script>
     window.addEventListener("load", async () => {
@@ -46,38 +101,37 @@
       const days = document.getElementById("days");
       const data = document.getElementById("data");
       const priceDisplay = document.getElementById("price");
+      const linkDisplay = document.getElementById("linkDisplay");
 
       let esimData = [];
 
       try {
         const res = await fetch("https://script.google.com/macros/s/AKfycbxLCicyVjd_6JS9F2nMiy9WZ04GhaE4H1QlNpEYcvP_Mzl2VhJjsTjzZoJL3_MaDCflXg/exec");
         esimData = await res.json();
-        console.log("取得成功：", esimData);
       } catch (e) {
-        console.error("データ取得エラー:", e);
-        priceDisplay.textContent = "取得できませんでした";
+        priceDisplay.textContent = "データ取得エラー";
         return;
       }
 
       function updatePrice() {
         if (!country.value || !days.value || !data.value) {
-          priceDisplay.innerHTML = "金額：-";
+          priceDisplay.textContent = "金額：-";
+          linkDisplay.innerHTML = "";
           return;
         }
 
         const match = esimData.find(row =>
-          row["国"] === country.value &&
-          row["期間"] === days.value &&
-          row["容量"] === data.value
+          row["国"].trim() === country.value.trim() &&
+          row["期間"].trim() === days.value.trim() &&
+          row["容量"].trim() === data.value.trim()
         );
 
         if (match) {
-          priceDisplay.innerHTML = `
-            金額：¥${match["金額"]}<br>
-            ${match["URL"] ? `<a href="${match["URL"]}" target="_blank"><button>プラン詳細へ</button></a>` : ""}
-          `;
+          priceDisplay.textContent = `金額：¥${match["金額"]}`;
+          linkDisplay.innerHTML = match["URL"] ? `<a href="${match["URL"]}" target="_blank"><button class="plan-button">プラン詳細へ</button></a>` : "";
         } else {
-          priceDisplay.innerHTML = "該当するプランがありません";
+          priceDisplay.textContent = "該当するプランがありません";
+          linkDisplay.innerHTML = "";
         }
       }
 
