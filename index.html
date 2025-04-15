@@ -2,55 +2,110 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>eSIM料金シミュレーター</title>
   <style>
     body {
-      font-family: "Arial", sans-serif;
-      background: #f5f5f5;
-      padding: 2rem;
-      text-align: center;
-    }
-    h1 {
+      font-family: 'Helvetica Neue', sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       color: #333;
     }
-    select {
-      padding: 0.5rem;
-      margin: 0.5rem;
-      font-size: 16px;
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
     }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 24px;
+      text-align: center;
+      color: #2d3748;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin: 15px 0 5px;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+    }
+
     #price {
-      margin-top: 1rem;
+      margin-top: 20px;
       font-size: 18px;
       font-weight: bold;
+      text-align: center;
+      color: #1a202c;
+    }
+
+    .btn-wrapper {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .btn {
+      margin-top: 10px;
+      padding: 10px 16px;
+      background-color: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #2563eb;
     }
   </style>
 </head>
 <body>
-  <h1>eSIM料金シミュレーター</h1>
+  <div class="container">
+    <h1>eSIM料金シミュレーター</h1>
 
-  <div>
-    <label>国を選択：
-      <select id="country"><option value="">-- 選択 --</option></select>
-    </label>
-  </div>
-  <div>
-    <label>期間を選択：
-      <select id="days"><option value="">-- 選択 --</option></select>
-    </label>
-  </div>
-  <div>
-    <label>容量を選択：
-      <select id="data"><option value="">-- 選択 --</option></select>
-    </label>
-  </div>
+    <label for="country">国を選択</label>
+    <select id="country">
+      <option value="">-- 選択 --</option>
+    </select>
 
-  <div id="price">金額：-</div>
+    <label for="days">期間を選択</label>
+    <select id="days">
+      <option value="">-- 選択 --</option>
+    </select>
+
+    <label for="data">容量を選択</label>
+    <select id="data">
+      <option value="">-- 選択 --</option>
+    </select>
+
+    <div id="price">金額：-</div>
+    <div class="btn-wrapper" id="linkDisplay"></div>
+  </div>
 
   <script>
     const countrySelect = document.getElementById("country");
     const daysSelect = document.getElementById("days");
     const dataSelect = document.getElementById("data");
     const priceDisplay = document.getElementById("price");
+    const linkDisplay = document.getElementById("linkDisplay");
 
     let esimData = [];
 
@@ -103,12 +158,13 @@
       );
 
       if (match) {
-        priceDisplay.innerHTML = `
-          金額：¥${match["金額"]}<br>
-          ${match["URL"] ? `<a href="${match["URL"]}" target="_blank"><button style="margin-top:10px">プラン詳細へ</button></a>` : ""}
-        `;
+        priceDisplay.innerHTML = `金額：¥${match["金額"]}`;
+        linkDisplay.innerHTML = match["URL"]
+          ? `<a href="${match["URL"]}" target="_blank"><button class="btn">プラン詳細へ</button></a>`
+          : "";
       } else {
         priceDisplay.innerHTML = "該当するプランがありません";
+        linkDisplay.innerHTML = "";
       }
     }
 
